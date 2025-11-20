@@ -44,7 +44,7 @@ const Sidebar = ({ closeMobile }) => {
                 : "text-cyan-900 hover:bg-cyan-300 hover:text-white"
             }`
           }
-          onClick={closeMobile} // <-- CLOSE SIDEBAR ON MOBILE CLICK
+          onClick={closeMobile}
         >
           {item.icon}
           <span>{item.label}</span>
