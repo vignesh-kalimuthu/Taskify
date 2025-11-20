@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-
+import { AuthContext } from "../context/AuthContext";
+import { toast } from "react-hot-toast";
 // Yup Schema Validation
 const schema = yup.object().shape({
   name: yup.string().required("Name is required"),
@@ -17,18 +18,36 @@ const schema = yup.object().shape({
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
-  // React-Hook-Form setup
+  const { signup } = useContext(AuthContext);
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = (data) => {
-    console.log("Form Submitted:", data);
+  const onSubmit = async (data) => {
+    try {
+      const res = await signup(data.name, data.email, data.password);
+      console.log("SignUpPage", res);
+
+      toast.success("Account created successfully!", {
+        duration: 2000,
+      });
+      reset();
+      // Redirect to login page
+
+      setTimeout(() => {
+        navigate("/signin");
+      }, 2000);
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response?.data?.message || "Signup failed");
+    }
   };
 
   return (

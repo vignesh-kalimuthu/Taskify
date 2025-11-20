@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { toast } from "react-hot-toast";
+import { AuthContext } from "../context/AuthContext";
 
 // Yup Schema Validation
 const schema = yup.object().shape({
@@ -16,8 +18,10 @@ const schema = yup.object().shape({
 
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
-  // React-Hook-Form setup
+  const { login } = useContext(AuthContext);
+
   const {
     register,
     handleSubmit,
@@ -26,8 +30,17 @@ const SignIn = () => {
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = (data) => {
-    console.log("Login Data:", data);
+  const onSubmit = async (data) => {
+    try {
+      const res = await login(data.email, data.password);
+      console.log("LoginPage", res);
+      localStorage.setItem("token", res.token);
+
+      navigate("/");
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response?.data?.message || "Invalid email or password");
+    }
   };
 
   return (

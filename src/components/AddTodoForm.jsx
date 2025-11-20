@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-hot-toast";
+import API from "../utils/axios";
 
 const AddTodoForm = ({ isOpen, onClose }) => {
   const schema = yup.object({
@@ -31,14 +32,21 @@ const AddTodoForm = ({ isOpen, onClose }) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
 
-  const onSubmit = (data) => {
-    console.log("formData", data);
-    toast.success("Task added successfully!");
-    // reset();
-    // onClose();
+  const onSubmit = async (data) => {
+    try {
+      const res = await API.post("/todos/", data);
+      console.log("formData", res.data);
+      toast.success("Task added successfully!");
+      reset();
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to add task");
+    }
   };
 
   if (!isOpen) return null;
