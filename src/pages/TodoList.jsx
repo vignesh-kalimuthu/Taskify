@@ -7,19 +7,22 @@ import {
   createColumnHelper,
   flexRender,
 } from "@tanstack/react-table";
-import { CiViewList } from "react-icons/ci";
+import { CiViewList, CiViewTimeline } from "react-icons/ci";
 import { GrNext, GrPrevious } from "react-icons/gr";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { FiTrash2 } from "react-icons/fi";
 import API from "../utils/axios";
+import ViewTask from "../components/ViewTask";
 
 const TodoList = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTodoId, setSelectedTodoId] = useState(null);
 
   useEffect(() => {
     const fetchTodos = async () => {
       try {
-        const res = await API.get("/todos"); // GET /todos
+        const res = await API.get("/todos");
         setData(res.data);
         console.log("Fetched Todos:", res.data);
       } catch (err) {
@@ -28,12 +31,23 @@ const TodoList = () => {
         setLoading(false);
       }
     };
+
+    console.log("Fetching todos...");
+
     fetchTodos();
+
+    const handler = () => fetchTodos();
+    window.addEventListener("refreshTodos", handler);
+
+    return () => window.removeEventListener("refreshTodos", handler);
   }, []);
 
-  /* -------------------------------------------------------
-     🔹 DELETE TODO
-    ------------------------------------------------------- */
+  const handleViewTodo = (id) => {
+    console.log("View Todo ID:", id);
+    setSelectedTodoId(id);
+    setIsModalOpen(true);
+  };
+
   const deleteTodo = async (id) => {
     try {
       await API.delete(`/todos/${id}`);
@@ -43,17 +57,14 @@ const TodoList = () => {
     }
   };
 
-  /* -------------------------------------------------------
-     🔹 COLUMN DEFINITIONS
-    ------------------------------------------------------- */
   const columnHelper = createColumnHelper();
 
   const columns = [
-    columnHelper.accessor("id", {
-      header: "ID",
-      cell: (info) => info.getValue(),
+    {
+      header: "S.No",
+      cell: ({ row }) => row.index + 1,
       enableSorting: false,
-    }),
+    },
 
     columnHelper.accessor("title", {
       header: "Task Title",
@@ -101,10 +112,10 @@ const TodoList = () => {
       cell: ({ row }) => (
         <div className="flex items-center gap-4">
           <button
-            className="text-blue-500/50 hover:text-blue-700"
-            onClick={() => alert(`Edit: ${row.original.id}`)}
+            className="text-blue-500 hover:text-blue-700"
+            onClick={() => handleViewTodo(row.original.id)}
           >
-            <FiEdit size={18} />
+            <CiViewTimeline size={18} />
           </button>
 
           <button
@@ -118,9 +129,6 @@ const TodoList = () => {
     },
   ];
 
-  /* -------------------------------------------------------
-     🔹 FILTERING, PAGINATION, SORTING
-    ------------------------------------------------------- */
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [pageSize, setPageSize] = useState(5);
@@ -157,9 +165,6 @@ const TodoList = () => {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  /* -------------------------------------------------------
-     🔹 LOADING UI
-    ------------------------------------------------------- */
   if (loading)
     return (
       <div className="p-4 text-center font-medium text-gray-500">
@@ -167,9 +172,6 @@ const TodoList = () => {
       </div>
     );
 
-  /* -------------------------------------------------------
-     🔹 RENDER PAGE NUMBERS
-    ------------------------------------------------------- */
   const renderPageNumbers = () => {
     const totalPages = table.getPageCount();
     const currentPage = table.getState().pagination.pageIndex + 1;
@@ -207,9 +209,6 @@ const TodoList = () => {
     return pages;
   };
 
-  /* -------------------------------------------------------
-     🔹 UI
-    ------------------------------------------------------- */
   return (
     <div className="p-4 max-w-5xl mx-auto">
       <div className="border-cyan-400 border bg-white rounded-md p-3 mb-3">
@@ -324,6 +323,11 @@ const TodoList = () => {
           <GrNext />
         </button>
       </div>
+      <ViewTask
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        todoId={selectedTodoId}
+      />
     </div>
   );
 };

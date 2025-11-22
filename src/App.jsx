@@ -56,7 +56,12 @@ function App() {
 
                 {/* MAIN CONTENT */}
                 <div className="md:ml-[220px]">
-                  <Header onMenuClick={() => setMobileOpen(true)} />
+                  <Header
+                    onMenuClick={() => setMobileOpen(true)}
+                    onTaskAdded={() =>
+                      window.dispatchEvent(new Event("refreshTodos"))
+                    }
+                  />
 
                   <div className="p-4 mt-[70px] overflow-y-auto">
                     <Routes>

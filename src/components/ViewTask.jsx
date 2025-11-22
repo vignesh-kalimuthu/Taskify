@@ -1,8 +1,20 @@
-import React from "react";
-import AddTodoForm from "./AddTodoForm";
+import React, { useEffect } from "react";
+import API from "../utils/axios";
 
-const Modal = ({ isOpen, onClose, onTaskAdded }) => {
+const ViewTask = ({ isOpen, onClose, todoId }) => {
+  useEffect(() => {
+    if (!todoId) return;
+
+    const fetchTodoDetails = async () => {
+      const res = await API.get(`/todos/${todoId}`);
+      console.log("Todo Details:", res.data);
+    };
+
+    fetchTodoDetails();
+  }, [todoId]);
+
   if (!isOpen) return null;
+  console.log("Viewing Todo ID:", todoId);
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black/50 backdrop-blur-xs z-50">
@@ -23,15 +35,12 @@ const Modal = ({ isOpen, onClose, onTaskAdded }) => {
 
         <hr className="mb-2" />
 
-        {/* Modal Content */}
-        <AddTodoForm
-          isOpen={isOpen}
-          onClose={onClose}
-          onTaskAdded={onTaskAdded}
-        />
+        <div className="flex-1 overflow-y-auto px-1 ">
+          Title:- Task {todoId}
+        </div>
       </div>
     </div>
   );
 };
 
-export default Modal;
+export default ViewTask;

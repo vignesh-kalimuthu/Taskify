@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FaBars } from "react-icons/fa";
 import Modal from "./Modal";
 
-const Header = ({ onMenuClick }) => {
+const Header = ({ onMenuClick, onTaskAdded }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -30,7 +30,11 @@ const Header = ({ onMenuClick }) => {
         Add Task
       </button>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onTaskAdded={onTaskAdded}
+      />
     </div>
   );
 };

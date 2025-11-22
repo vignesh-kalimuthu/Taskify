@@ -3,9 +3,10 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import API from "../utils/axios";
 
-const AddTodoForm = ({ isOpen, onClose }) => {
+const AddTodoForm = ({ isOpen, onClose, onTaskAdded }) => {
   const schema = yup.object({
     title: yup
       .string()
@@ -29,6 +30,8 @@ const AddTodoForm = ({ isOpen, onClose }) => {
       .notOneOf([""], "Priority is required"),
   });
 
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -43,6 +46,8 @@ const AddTodoForm = ({ isOpen, onClose }) => {
       toast.success("Task added successfully!");
       reset();
       onClose();
+      if (onTaskAdded) onTaskAdded();
+      navigate("/tasks");
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Failed to add task");
