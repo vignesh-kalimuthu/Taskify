@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -9,113 +9,139 @@ import {
 } from "@tanstack/react-table";
 import { CiViewList } from "react-icons/ci";
 import { GrNext, GrPrevious } from "react-icons/gr";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
-const UpdateStatus = () => {
-  const data = useMemo(
-    () => [
-      { id: 1, title: "Learn React", priority: "High", status: "Pending" },
-      {
-        id: 2,
-        title: "Study TanStack Table",
-        priority: "Medium",
-        status: "In Progress",
-      },
-      { id: 3, title: "Build Todo App", priority: "Low", status: "Completed" },
-      { id: 4, title: "Fix Bugs", priority: "High", status: "Pending" },
-      { id: 5, title: "Deploy App", priority: "Medium", status: "Completed" },
-      { id: 6, title: "Write Docs", priority: "Low", status: "Pending" },
-      { id: 7, title: "Review Code", priority: "High", status: "In Progress" },
-      {
-        id: 8,
-        title: "Plan Features",
-        priority: "Medium",
-        status: "Completed",
-      },
-      { id: 9, title: "Refactor Code", priority: "High", status: "Pending" },
-      { id: 10, title: "Add Analytics", priority: "Low", status: "Completed" },
-    ],
-    []
-  );
 
-  // --- Column Setup ---
+import API from "../utils/axios";
+
+const UpdateStatus = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTodos = async () => {
+      try {
+        const res = await API.get("/todos");
+        setData(res.data);
+        console.log("Fetched Todos:", res.data);
+      } catch (err) {
+        console.error("API Error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    console.log("Fetching todos...");
+
+    fetchTodos();
+
+    const handler = () => fetchTodos();
+    window.addEventListener("refreshTodos", handler);
+
+    return () => window.removeEventListener("refreshTodos", handler);
+  }, []);
+
   const columnHelper = createColumnHelper();
+
   const columns = [
-    columnHelper.accessor("id", {
-      header: "ID",
-      cell: (info) => info.getValue(),
+    {
+      header: "S.No",
+      cell: ({ row }) => row.index + 1,
       enableSorting: false,
-    }),
+    },
+
     columnHelper.accessor("title", {
       header: "Task Title",
       cell: (info) => info.getValue(),
     }),
+
     columnHelper.accessor("priority", {
       header: "Priority",
-      cell: (info) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            info.getValue() === "High"
-              ? "bg-red-100 text-red-700"
-              : info.getValue() === "Medium"
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-green-100 text-green-700"
-          }`}
-        >
-          {info.getValue()}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const priorities = ["Low", "Medium", "High"];
+
+        const updatePriority = async (value) => {
+          try {
+            await API.patch(`/todos/${row.original.id}`, { priority: value });
+            window.dispatchEvent(new Event("refreshTodos"));
+          } catch (error) {
+            console.error("Priority update failed:", error);
+          }
+        };
+
+        return (
+          <div className="flex gap-1">
+            {priorities.map((p) => (
+              <button
+                key={p}
+                onClick={() => updatePriority(p)}
+                className={`px-2 py-1 text-xs rounded-full border transition
+              ${
+                p === row.original.priority
+                  ? p === "High"
+                    ? "bg-red-500 text-white border-red-500"
+                    : p === "Medium"
+                    ? "bg-yellow-500 text-white border-yellow-500"
+                    : "bg-green-500 text-white border-green-500"
+                  : "bg-white hover:bg-gray-200"
+              }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        );
+      },
     }),
 
     columnHelper.accessor("status", {
       header: "Status",
-      cell: (info) => (
-        <span
-          className={`px-2 py-1 text-xs font-medium rounded-full ${
-            info.getValue() === "Pending"
-              ? "bg-red-100 text-red-700"
-              : info.getValue() === "Completed"
-              ? "bg-green-100 text-green-700"
-              : "bg-yellow-100 text-yellow-700"
-          }`}
-        >
-          {info.getValue()}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const statusOptions = ["Pending", "In Progress", "Completed"];
+
+        const updateStatus = async (value) => {
+          try {
+            await API.patch(`/todos/${row.original.id}`, { status: value });
+            window.dispatchEvent(new Event("refreshTodos"));
+          } catch (error) {
+            console.error("Status update failed:", error);
+          }
+        };
+
+        const getStatusStyle = (status) => {
+          if (status === row.original.status) {
+            return {
+              Pending: "bg-gray-500 text-white border-gray-500",
+              "In Progress": "bg-blue-500 text-white border-blue-500",
+              Completed: "bg-green-500 text-white border-green-500",
+            }[status];
+          }
+
+          return "bg-white hover:bg-gray-200";
+        };
+
+        return (
+          <div className="flex gap-1">
+            {statusOptions.map((status) => (
+              <button
+                key={status}
+                onClick={() => updateStatus(status)}
+                className={`px-2 py-1 text-xs rounded-full border transition ${getStatusStyle(
+                  status
+                )}`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        );
+      },
     }),
-
-    {
-      id: "actions",
-      header: "Actions",
-      enableSorting: false,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-4">
-          {/* Edit Button */}
-          <button
-            className="text-blue-500/50 hover:text-blue-700"
-            onClick={() => alert(`Edit: ${row.original.id}`)}
-          >
-            <FiEdit size={18} />
-          </button>
-
-          {/* Delete Button */}
-          <button
-            className="text-red-500/40 hover:text-red-700/40"
-            onClick={() => alert(`Delete: ${row.original.id}`)}
-          >
-            <FiTrash2 size={18} />
-          </button>
-        </div>
-      ),
-    },
   ];
 
-  // --- States ---
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [pageSize, setPageSize] = useState(5);
   const [pageIndex, setPageIndex] = useState(0);
 
-  // --- Filtered Data ---
   const filteredData = useMemo(() => {
     return data.filter((item) =>
       Object.values(item).some((val) =>
@@ -124,16 +150,12 @@ const UpdateStatus = () => {
     );
   }, [data, globalFilter]);
 
-  // --- Table Instance ---
   const table = useReactTable({
     data: filteredData,
     columns,
     state: {
       sorting,
-      pagination: {
-        pageIndex,
-        pageSize,
-      },
+      pagination: { pageIndex, pageSize },
     },
     onSortingChange: setSorting,
     onPaginationChange: (updater) => {
@@ -141,15 +163,23 @@ const UpdateStatus = () => {
         typeof updater === "function"
           ? updater({ pageIndex, pageSize })
           : updater;
+
       setPageIndex(newPagination.pageIndex);
       setPageSize(newPagination.pageSize);
     },
+
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  // --- Pagination Rendering ---
+  if (loading)
+    return (
+      <div className="p-4 text-center font-medium text-gray-500">
+        Loading tasks...
+      </div>
+    );
+
   const renderPageNumbers = () => {
     const totalPages = table.getPageCount();
     const currentPage = table.getState().pagination.pageIndex + 1;
@@ -160,10 +190,10 @@ const UpdateStatus = () => {
         <button
           key={page}
           onClick={() => table.setPageIndex(page - 1)}
-          className={`  rounded-full text-sm ${
+          className={`rounded-full text-sm ${
             currentPage === page
-              ? "bg-cyan-500 text-white  rounded-full px-2 py-0.5 m-1 hover:border-cyan-500 hover:border hover:bg-white hover:text-cyan-600"
-              : "hover:border-cyan-500  rounded-full px-2 py-0.5 m-1 hover:border hover:bg-white hover:text-cyan-600"
+              ? "bg-cyan-500 text-white rounded-full px-2 py-0.5 m-1"
+              : "rounded-full px-2 py-0.5 m-1 hover:border hover:border-cyan-500 hover:text-cyan-600"
           }`}
         >
           {page}
@@ -189,59 +219,53 @@ const UpdateStatus = () => {
 
   return (
     <div className="p-4 max-w-5xl mx-auto">
-      <div className=" border-cyan-400 border bg-white rounded-md p-3 mb-3">
+      <div className="border-cyan-400 border bg-white rounded-md p-3 mb-3">
         <h2 className="flex items-center text-cyan-500 gap-2 text-xl font-semibold mb-4">
-          <CiViewList className="text-3xl text-cyan-500" /> Status List
+          <CiViewList className="text-3xl text-cyan-500" /> Task Status
         </h2>
 
-        {/* --- Search and Page Size --- */}
         <div className="flex justify-between items-center mb-3">
           <input
             type="text"
-            placeholder={`🔍 Search...`}
+            placeholder="🔍 Search..."
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
-            className="border border-gray-300 rounded px-3 py-1  text-sm w-1/3 focus:ring-1 focus:ring-cyan-500 outline-none"
+            className="border border-gray-300 rounded px-3 py-1 text-sm w-1/3 focus:ring-1 focus:ring-cyan-500 outline-none"
           />
 
           <div className="flex items-center gap-2">
-            <label htmlFor="rowsPerPage" className="text-sm text-gray-400">
-              Rows per page:
-            </label>
+            <label className="text-sm text-gray-400">Rows per page:</label>
             <select
-              id="rowsPerPage"
-              className="border border-gray-200 rounded-sm text-gray-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none"
               value={pageSize}
               onChange={(e) => {
                 const size = Number(e.target.value);
                 setPageSize(size);
                 table.setPageSize(size);
               }}
+              className="border border-gray-200 rounded-sm text-gray-500 focus:ring-1 focus:ring-cyan-500"
             >
               {[5, 10, 20, 50].map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
+                <option key={size}>{size}</option>
               ))}
             </select>
           </div>
         </div>
       </div>
 
-      {/* --- Table --- */}
+      {/* TABLE */}
       <div className="overflow-x-auto border border-cyan-400 rounded-md">
-        <table className="min-w-full text-sm border-collapse rounded  border-none ">
-          <thead className="bg-cyan-400 text-white rounded ">
+        <table className="min-w-full text-sm border-collapse">
+          <thead className="bg-cyan-400 text-white">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const canSort = header.column.getCanSort(); // ✅ check if sorting enabled
+                  const canSort = header.column.getCanSort();
                   const isSorted = header.column.getIsSorted();
 
                   return (
                     <th
                       key={header.id}
-                      className={`border-b-cyan-400  border-black p-2 text-left ${
+                      className={`p-2 text-left ${
                         canSort ? "cursor-pointer select-none" : ""
                       }`}
                       onClick={
@@ -256,19 +280,13 @@ const UpdateStatus = () => {
                           header.getContext()
                         )}
 
-                        {/* 👇 Show arrow only if sorting is enabled */}
                         {canSort && (
-                          <span className="ml-1 relative group">
+                          <span className="ml-1">
                             {isSorted === "asc"
                               ? "▲"
                               : isSorted === "desc"
                               ? "▼"
                               : "⇅"}
-
-                            {/* Tooltip below */}
-                            <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 hidden group-hover:block bg-white border-cyan-400 text-cyan-400 text-xs rounded py-1 px-2 whitespace-nowrap shadow-md z-50">
-                              Sort
-                            </span>
                           </span>
                         )}
                       </div>
@@ -283,7 +301,7 @@ const UpdateStatus = () => {
             {table.getRowModel().rows.map((row) => (
               <tr key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="border-b-cyan-400 border-b p-2">
+                  <td key={cell.id} className="border-b p-2">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
@@ -293,22 +311,20 @@ const UpdateStatus = () => {
         </table>
       </div>
 
-      {/* --- Pagination --- */}
+      {/* PAGINATION */}
       <div className="flex items-center justify-center gap-4 mt-4">
         <button
-          className="bg-cyan-500 text-sm text-white p-2 rounded-full   border border-transparent hover:bg-white hover:text-cyan-500 hover:border hover:border-cyan-500 disabled:opacity-50"
+          className="bg-cyan-500 text-white p-2 rounded-full disabled:opacity-50"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
           <GrPrevious />
         </button>
 
-        <div className="flex items-center space-x-1 rounded-full">
-          {renderPageNumbers()}
-        </div>
+        <div className="flex items-center space-x-1">{renderPageNumbers()}</div>
 
         <button
-          className="bg-cyan-500 text-sm text-white p-2 rounded-full   border border-transparent hover:bg-white hover:text-cyan-500 hover:border hover:border-cyan-500 disabled:opacity-50"
+          className="bg-cyan-500 text-white p-2 rounded-full disabled:opacity-50"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >

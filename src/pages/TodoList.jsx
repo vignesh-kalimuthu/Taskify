@@ -7,16 +7,18 @@ import {
   createColumnHelper,
   flexRender,
 } from "@tanstack/react-table";
-import { CiViewList, CiViewTimeline } from "react-icons/ci";
+import { CiViewList, CiViewTimeline, CiEdit } from "react-icons/ci";
 import { GrNext, GrPrevious } from "react-icons/gr";
-import { FiTrash2 } from "react-icons/fi";
+import { FiTrash2, FiEdit } from "react-icons/fi";
 import API from "../utils/axios";
 import ViewTask from "../components/ViewTask";
+import EditModal from "../components/EditModal";
 
 const TodoList = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedTodoId, setSelectedTodoId] = useState(null);
 
   useEffect(() => {
@@ -46,6 +48,11 @@ const TodoList = () => {
     console.log("View Todo ID:", id);
     setSelectedTodoId(id);
     setIsModalOpen(true);
+  };
+
+  const handleEditTodo = (id) => {
+    setSelectedTodoId(id);
+    setIsEditOpen(true);
   };
 
   const deleteTodo = async (id) => {
@@ -112,10 +119,16 @@ const TodoList = () => {
       cell: ({ row }) => (
         <div className="flex items-center gap-4">
           <button
-            className="text-blue-500 hover:text-blue-700"
+            className="text-cyan-600 hover:text-blue-700"
             onClick={() => handleViewTodo(row.original.id)}
           >
             <CiViewTimeline size={18} />
+          </button>
+          <button
+            className="text-blue-400 hover:text-blue-700"
+            onClick={() => handleEditTodo(row.original.id)}
+          >
+            <FiEdit size={16} />
           </button>
 
           <button
@@ -327,6 +340,12 @@ const TodoList = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         todoId={selectedTodoId}
+      />
+      <EditModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        todoId={selectedTodoId}
+        onTaskAdded={() => window.dispatchEvent(new Event("refreshTodos"))}
       />
     </div>
   );

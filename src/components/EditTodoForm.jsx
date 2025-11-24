@@ -1,10 +1,12 @@
-import React from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-hot-toast";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import API from "../utils/axios";
 
-const EditTodoForm = ({ isOpen, onClose }) => {
+const EditTodoForm = ({ isOpen, onClose, todoId, onTaskAdded }) => {
   const schema = yup.object({
     title: yup
       .string()
@@ -28,18 +30,53 @@ const EditTodoForm = ({ isOpen, onClose }) => {
       .notOneOf([""], "Priority is required"),
   });
 
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
 
-  const onSubmit = (data) => {
-    console.log("formData", data);
-    toast.success("Task added successfully!");
-    // reset();
-    // onClose();
+  const onSubmit = async (data) => {
+    try {
+      const res = await API.patch(`/todos/${todoId}`, data);
+      console.log("formData", res.data);
+      toast.success("Task added successfully!");
+      reset();
+      onClose();
+      if (onTaskAdded) onTaskAdded();
+      navigate("/tasks");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to add task");
+    }
   };
+
+  useEffect(() => {
+    if (!todoId) return;
+
+    const fetchTodoDetails = async () => {
+      try {
+        const res = await API.get(`/todos/${todoId}`);
+        console.log("Todo Details:", res.data);
+        let getData = res.data[0];
+        // Pre-fill the form fields from API response
+        reset({
+          title: getData.title,
+          description: getData.description,
+          category: getData.category,
+          priority: getData.priority,
+        });
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load task details");
+      }
+    };
+
+    fetchTodoDetails();
+  }, [todoId, reset]);
 
   if (!isOpen) return null;
 
@@ -123,11 +160,11 @@ const EditTodoForm = ({ isOpen, onClose }) => {
             }`}
           >
             <option value="">Choose a category</option>
-            <option value="work">Work</option>
-            <option value="home">Home</option>
-            <option value="shopping">Shopping</option>
-            <option value="travel">Travel</option>
-            <option value="others">Others</option>
+            <option value="Work">Work</option>
+            <option value="Home">Home</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Travel">Travel</option>
+            <option value="Others">Others</option>
           </select>
           {errors.category && (
             <p className="text-red-500 text-xs sm:text-xs ">

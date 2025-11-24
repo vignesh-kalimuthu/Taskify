@@ -11,12 +11,7 @@ const Sidebar = ({ closeMobile }) => {
     { icon: <FaHome size={18} />, label: "Home", path: "/" },
     { icon: <FaChartBar size={18} />, label: "Dashboard", path: "/dashboard" },
     { icon: <FaRegListAlt size={18} />, label: "Task List", path: "/tasks" },
-    { icon: <MdAddBox size={18} />, label: "Add Task", path: "/add-task" },
-    {
-      icon: <MdEditSquare size={18} />,
-      label: "Edit Task",
-      path: "/edit-task",
-    },
+
     {
       icon: <RxUpdate size={18} />,
       label: "Update Status",
