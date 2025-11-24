@@ -1,7 +1,7 @@
 import React from "react";
 import EditTodoForm from "./EditTodoForm";
 
-const EditModal = ({ isOpen, onClose }) => {
+const EditModal = ({ isOpen, onClose, todoId, onTaskAdded }) => {
   if (!isOpen) return null;
 
   return (
@@ -24,7 +24,12 @@ const EditModal = ({ isOpen, onClose }) => {
         <hr className="mb-2" />
 
         {/* Modal Content */}
-        <EditTodoForm isOpen={isOpen} onClose={onClose} />
+        <EditTodoForm
+          isOpen={isOpen}
+          onClose={onClose}
+          todoId={todoId}
+          onTaskAdded={onTaskAdded}
+        />
       </div>
     </div>
   );

@@ -8,8 +8,7 @@ import Sidebar from "./components/Sidebar";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Tasks from "./pages/TodoList";
-import AddTask from "./pages/AddTask";
-import EditTask from "./pages/EditTask";
+
 import UpdateStatus from "./pages/UpdateStatus";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
@@ -68,8 +67,7 @@ function App() {
                       <Route path="/" element={<Home />} />
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/tasks" element={<Tasks />} />
-                      <Route path="/add-task" element={<AddTask />} />
-                      <Route path="/edit-task" element={<EditTask />} />
+
                       <Route path="/update-status" element={<UpdateStatus />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="/profile" element={<Profile />} />
