@@ -190,6 +190,7 @@ const TodoList = () => {
     const currentPage = table.getState().pagination.pageIndex + 1;
     const pages = [];
 
+
     const addPage = (page) => {
       pages.push(
         <button
