@@ -102,12 +102,12 @@ const SignIn = () => {
                 )}
               </div>
 
-              {/* <Link
+              <Link
                 to="/forgot-password"
                 className="text-sm text-cyan-600 hover:underline  whitespace-nowrap"
               >
                 Forgot Password?
-              </Link> */}
+              </Link>
             </div>
           </div>
 

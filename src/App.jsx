@@ -47,7 +47,11 @@ function App() {
                 <div
                   className={`fixed left-0 top-0 h-screen p-3 bg-cyan-400/40 
                   w-[220px] z-50 transition-transform duration-300
-                  ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
+                  ${
+                    mobileOpen
+                      ? "translate-x-0 bg-cyan-500"
+                      : "-translate-x-full"
+                  }
                   md:translate-x-0`}
                 >
                   <Sidebar closeMobile={() => setMobileOpen(false)} />

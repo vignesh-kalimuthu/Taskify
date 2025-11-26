@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { FaHome, FaChartBar, FaRegListAlt } from "react-icons/fa";
-import { MdAddBox, MdEditSquare } from "react-icons/md";
+
 import { RxUpdate } from "react-icons/rx";
 import { IoSettingsOutline } from "react-icons/io5";
 import { CgProfile } from "react-icons/cg";
@@ -17,12 +17,12 @@ const Sidebar = ({ closeMobile }) => {
       label: "Update Status",
       path: "/update-status",
     },
+    { icon: <CgProfile size={18} />, label: "Profile", path: "/profile" },
     {
       icon: <IoSettingsOutline size={18} />,
       label: "Settings",
       path: "/settings",
     },
-    { icon: <CgProfile size={18} />, label: "Profile", path: "/profile" },
   ];
 
   return (
